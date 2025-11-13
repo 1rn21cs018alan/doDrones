@@ -22,7 +22,7 @@ def main():
     try:
         media = MediaFileUpload("testData.txt")
         metadata={
-            "name":"try/test.txt"
+            "name":"test.txt"
         }
         service = build("drive", "v3", credentials=creds)
         result=(

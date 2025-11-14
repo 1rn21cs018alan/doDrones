@@ -132,7 +132,13 @@ def uploadFile():
         return render_template('upload.html')
 
 
+@app.route("/")
+def index():
+    return render_template("index.html")
+
 if __name__ == '__main__':
-    # from waitress import serve
-    # serve(app, host="0.0.0.0", port=80)
-    app.run(host="0.0.0.0", debug=True)
+    if isDevelopment:
+        from waitress import serve
+        serve(app, host="0.0.0.0", port=8000)
+    else:
+        app.run(host="0.0.0.0", debug=True)

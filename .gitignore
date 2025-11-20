@@ -212,3 +212,4 @@ credentials.json
 token.json
 /uploads
 /flask_session
+/typescript_side

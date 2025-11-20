@@ -1,0 +1,45 @@
+/* Lovelace Script Font Family - Self-hosted */
+
+@font-face {
+  font-family: 'Lovelace Script';
+  src: url('/fonts/lovelace/Lovelace-Script-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Lovelace Script';
+  src: url('/fonts/lovelace/Lovelace-Script-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Lovelace Script';
+  src: url('/fonts/lovelace/Lovelace-Script-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Lovelace Script';
+  src: url('/fonts/lovelace/Lovelace-Script-Extrabold.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Lovelace Script';
+  src: url('/fonts/lovelace/Lovelace-Script-Italic.ttf') format('truetype');
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+
+.font-lovelace {
+  font-family: 'Lovelace Script', cursive;
+}

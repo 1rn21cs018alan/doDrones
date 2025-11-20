@@ -1,5 +1,5 @@
 import os
-from flask import Flask, request, redirect, url_for, render_template,session
+from flask import Flask, request, redirect, url_for, render_template,session,send_from_directory
 from werkzeug.utils import secure_filename
 from uploader import upload
 from dotenv import load_dotenv
@@ -136,9 +136,36 @@ def uploadFile():
 def index():
     return render_template("index.html")
 
+#@app.route('/sponsers/<path:filename>')
+#def serve_sponser_static(filename):
+#    """
+#    Serves files from the 'static' directory when the URL starts with '/sponsers/'.
+#    """
+#    # Use send_from_directory to safely serve the file
+#    return send_from_directory(STATIC_DIR,"sponsers"+ filename)
+
+@app.route('/sponsors', defaults={'path': ''})
+@app.route('/sponsors/<path:path>')
+def redirect_xd(path):
+    new_url = '/static/sponsors'
+    if path:
+        new_url = f"{new_url}/{path}"
+    response=make_response(redirect(new_url, code=301))
+    response.headers['Cache-Control'] = 'public, max-age=300'
+    return response
+
+
+@app.route('/static/<path:filename>')
+def custom_static(filename):
+    static_folder = os.path.join(current_app.root_path, 'static')
+    response = make_response(send_from_directory(static_folder, filename))
+    if filename.endswith(".svg"):
+        response.headers['Cache-Control'] = 'public, max-age=300'
+    return response
+
 if __name__ == '__main__':
-    if not isDevelopment:
+    if not isDevelopment and 1:
         from waitress import serve
         serve(app, host="0.0.0.0", port=8000)
     else:
-        app.run(host="0.0.0.0", debug=True)
+        app.run(host="0.0.0.0", port=8000,debug=True)

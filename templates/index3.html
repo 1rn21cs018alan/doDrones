@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Full Screen Cropped Image</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles to ensure full viewport coverage and reset defaults */
+        html, body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Prevent scrolling due to image filling the screen */
+            height: 100%;
+            width: 100%;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Ensure the image container (body) correctly dictates the viewport size */
+        .viewport-cover {
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body class="viewport-cover">
+    <img 
+        id="fullScreenImage"
+        src="static/do drones img1.png"
+        alt="Full screen cropped background image"
+        onerror="this.onerror=null; this.src='https://placehold.co/1000x1000/3B82F6/ffffff?text=s1.png+Placeholder'"
+        class="w-screen h-screen object-cover object-center absolute inset-0 transition duration-500"
+    />
+
+
+</body>
+</html>

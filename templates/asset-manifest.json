@@ -1,0 +1,20 @@
+{
+  "files": {
+    "main.css": "/static/css/main.a18592cc.css",
+    "main.js": "/static/js/main.0f81ee85.js",
+    "static/media/Lovelace-Script-Medium.ttf": "/static/media/Lovelace-Script-Medium.3c337ae6550dc127eb38.ttf",
+    "static/media/Lovelace-Script-Italic.ttf": "/static/media/Lovelace-Script-Italic.4cf3ed67e950808d385b.ttf",
+    "static/media/Lovelace-Script-Light.ttf": "/static/media/Lovelace-Script-Light.606b213fd82c6f220ffa.ttf",
+    "static/media/Lovelace-Script-Bold.ttf": "/static/media/Lovelace-Script-Bold.4321556ce505106943e3.ttf",
+    "static/media/Lovelace-Script-Extrabold.ttf": "/static/media/Lovelace-Script-Extrabold.a01b04bc3f76c6e0026a.ttf",
+    "static/media/Besley-Italic-VariableFont_wght.ttf": "/static/media/Besley-Italic-VariableFont_wght.5b6c0d4cc0cdbe15572e.ttf",
+    "static/media/Besley-VariableFont_wght.ttf": "/static/media/Besley-VariableFont_wght.b6b03ec86e6fa01138cf.ttf",
+    "index.html": "/index.html",
+    "main.a18592cc.css.map": "/static/css/main.a18592cc.css.map",
+    "main.0f81ee85.js.map": "/static/js/main.0f81ee85.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.a18592cc.css",
+    "static/js/main.0f81ee85.js"
+  ]
+}

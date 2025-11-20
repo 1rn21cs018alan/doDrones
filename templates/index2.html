@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Resting Bear</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom CSS to define a subtle glow effect for the border */
+        .bear-container {
+            transition: all 0.3s ease-in-out;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border: 4px solid transparent; /* Start with transparent border */
+            background: #111827; /* Dark background inside the container */
+        }
+        
+        /* Gradient Border Effect */
+        .bear-container:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 1.5rem; /* Match rounded-3xl */
+            padding: 4px; /* Border thickness */
+            background: linear-gradient(45deg, #a855f7, #ec4899, #10b981); /* A nice vibrant gradient */
+            -webkit-mask: 
+                linear-gradient(#fff 0 0) content-box, 
+                linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            z-index: -1;
+            opacity: 0.75;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        /* Hover effect to make the border gradient glow brighter */
+        .bear-container:hover:before {
+            opacity: 1;
+            box-shadow: 0 0 40px rgba(236, 72, 153, 0.5);
+        }
+
+        /* Set 'Inter' as the preferred font */
+        body {
+            font-family: "Inter", sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4">
+
+    <!-- Image Container with Centering and Styling -->
+    <div class="relative max-w-sm md:max-w-lg lg:max-w-2xl w-full p-6 bear-container rounded-3xl shadow-2xl">
+        <h1 class="text-3xl font-extrabold text-center mb-6 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
+            A Moment of Peace for Tarun before workloads increase
+        </h1>
+        
+        <!-- The Image -->
+        <div class="relative aspect-square w-full rounded-xl overflow-hidden shadow-inner shadow-gray-700">
+            <img 
+                src="/static/tarun.webp" 
+                alt="A resting bear, a placeholder for the user's image." 
+                class="w-full h-full object-cover transform hover:scale-[1.01] transition duration-500"
+                onerror="this.onerror=null; this.src='https://placehold.co/800x450/1f2937/d1d5db?text=Image+Not+Found';"
+            >
+        </div>
+<!--
+        <p class="mt-6 text-center text-gray-400 text-sm">
+            This display uses an embedded CSS gradient overlay for the beautiful border effect.
+        </p>
+-->
+    </div>
+    <!-- /Image Container -->
+
+</body>
+</html>

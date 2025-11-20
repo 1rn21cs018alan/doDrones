@@ -1,5 +1,5 @@
 import os
-from flask import Flask, request, redirect, url_for, render_template,session,send_from_directory
+from flask import Flask, request, redirect, url_for, render_template,session,send_from_directory,make_response
 from werkzeug.utils import secure_filename
 from uploader import upload
 from dotenv import load_dotenv
@@ -132,6 +132,10 @@ def uploadFile():
         return render_template('upload.html')
 
 
+@app.route("/faq")
+@app.route("/program")
+def back2Index():
+    return redirect("/")
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -157,7 +161,7 @@ def redirect_xd(path):
 
 @app.route('/static/<path:filename>')
 def custom_static(filename):
-    static_folder = os.path.join(current_app.root_path, 'static')
+    static_folder = os.path.join(app.root_path, 'static')
     response = make_response(send_from_directory(static_folder, filename))
     if filename.endswith(".svg"):
         response.headers['Cache-Control'] = 'public, max-age=300'

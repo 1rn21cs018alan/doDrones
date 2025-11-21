@@ -167,6 +167,10 @@ def custom_static(filename):
         response.headers['Cache-Control'] = 'public, max-age=300'
     return response
 
+@app.route("/health")
+def healthCheck():
+    return "yes"
+
 if __name__ == '__main__':
     if not isDevelopment and 1:
         from waitress import serve

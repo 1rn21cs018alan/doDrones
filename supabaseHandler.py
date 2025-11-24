@@ -69,7 +69,7 @@ def getUserData(email):
         'graduationYear':None,
         # 'courseMaterials.length': None
     }
-    na="N/A"
+    na=None#"N/A"
     import traceback
     try:
         # print('flag1')
@@ -90,7 +90,7 @@ def getUserData(email):
                     .eq("id",participant_id)
                     .execute()
                 )
-                print('flag5')
+                # print('flag5')
                 if len(response.data)>0:
                     # print('flag6')
                     data=response.data[0]
@@ -103,6 +103,23 @@ def getUserData(email):
                     participantData['graduationMonth']=data.get('graduationMonth',na)
                     participantData['graduationYear']=data.get('graduationYear',na)
                     participantData['hasPaid']=data.get('hadPaid',na)
+                    participantData['city']=data.get('city',na)
+                    participantData['department']=data.get('department',na)
+                    participantData['designation']=data.get('designation',na)
+                    participantData['firstName']=data.get('firstName',na)
+                    participantData['hearAbout']=data.get('hearAbout',na)
+                    participantData['hearAboutOther']=data.get('hearAboutOther',na)
+                    participantData['idCardLink']=data.get('idCardLink',na)
+                    participantData['idCardName']=data.get('idCardName',na)
+                    participantData['iiscAffiliated']=data.get('iiscAffiliated',na)
+                    participantData['lastName']=data.get('lastName',na)
+                    participantData['phoneWork']=data.get('phoneWork',na)
+                    participantData['profilePhotoLink']=data.get('profilePhotoLink',na)
+                    participantData['profilePhotoPreview']=data.get('profilePhotoPreview',na)
+                    participantData['shareWithParticipants']=data.get('shareWithParticipants',na)
+                    participantData['shareWithPartners']=data.get('shareWithPartners',na)
+                    participantData['shortBio']=data.get('shortBio',na)
+                    participantData['workEmail']=data.get('workEmail',na)
                 # print('flag7')
                 
         else:
@@ -159,6 +176,7 @@ def upsertParticipantData(email,data):
                 'shortBio':data.get('shortBio',''),
                 'studentLevel':data.get('studentLevel',''),
                 'workEmail':data.get('workEmail',''),
+                'modifed_on':convertTimeStamp(datetime.datetime.now())
             })
             # .select()
             .execute()

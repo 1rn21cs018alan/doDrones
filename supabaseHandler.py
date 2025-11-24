@@ -83,25 +83,26 @@ def getUserData(email):
             userID=response.data[0].get("id")
             participant_id=response.data[0].get("participant_id")
             # print('flag4')
-            response=(
-                supabase.table("participant")
-                .select()
-                .eq("id",participant_id)
-                .execute()
-            )
-            print('flag5')
-            if len(response.data)>0:
-                # print('flag6')
-                data=response.data[0]
-                participantData['firstName']=data.get('firstName',na)
-                participantData['name']=data.get('firstName',na)+" "+data.get('lastName','')
-                participantData['participantType']=data.get('participantType',na)
-                participantData['organization']=data.get('organization',na)
-                participantData['studentLevel']=data.get('studentLevel',na)
-                participantData['phoneWhatsApp']=data.get('phoneWhatsApp',na)
-                participantData['graduationMonth']=data.get('graduationMonth',na)
-                participantData['graduationYear']=data.get('graduationYear',na)
-                participantData['hasPaid']=data.get('hadPaid',na)
+            if participant_id is not None:
+                response=(
+                    supabase.table("participant")
+                    .select()
+                    .eq("id",participant_id)
+                    .execute()
+                )
+                print('flag5')
+                if len(response.data)>0:
+                    # print('flag6')
+                    data=response.data[0]
+                    participantData['firstName']=data.get('firstName',na)
+                    participantData['name']=data.get('firstName',na)+" "+data.get('lastName','')
+                    participantData['participantType']=data.get('participantType',na)
+                    participantData['organization']=data.get('organization',na)
+                    participantData['studentLevel']=data.get('studentLevel',na)
+                    participantData['phoneWhatsApp']=data.get('phoneWhatsApp',na)
+                    participantData['graduationMonth']=data.get('graduationMonth',na)
+                    participantData['graduationYear']=data.get('graduationYear',na)
+                    participantData['hasPaid']=data.get('hadPaid',na)
                 # print('flag7')
                 
         else:

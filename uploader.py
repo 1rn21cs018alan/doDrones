@@ -9,15 +9,17 @@ from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaFileUpload
 from googleapiclient.http import MediaIoBaseUpload
 import io
-
+import os
+inSameFolder=lambda x:os.path.join(os.path.dirname(__file__),x) 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ["https://www.googleapis.com/auth/drive.appdata",
           "https://www.googleapis.com/auth/drive.file"]
 
 def upload(filename:str,fileData:bytes):
     creds = None
-    if os.path.exists("token.json"):
-        creds = Credentials.from_authorized_user_file("token.json", SCOPES)
+    tokenPath=inSameFolder('token.json')
+    if os.path.exists(tokenPath):
+        creds = Credentials.from_authorized_user_file(tokenPath, SCOPES)
     else:
         raise FileNotFoundError("No Token File")
 

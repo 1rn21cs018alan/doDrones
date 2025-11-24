@@ -64,6 +64,9 @@ def getUserData(email):
         'totalSessions': None,
         'connectionCount': None,
         'courseMaterials': None,
+        'phoneWhatsApp':None,
+        'graduationMonth':None,
+        'graduationYear':None,
         # 'courseMaterials.length': None
     }
     na="N/A"
@@ -95,6 +98,10 @@ def getUserData(email):
                 participantData['participantType']=data.get('participantType',na)
                 participantData['organization']=data.get('organization',na)
                 participantData['studentLevel']=data.get('studentLevel',na)
+                participantData['phoneWhatsApp']=data.get('phoneWhatsApp',na)
+                participantData['graduationMonth']=data.get('graduationMonth',na)
+                participantData['graduationYear']=data.get('graduationYear',na)
+                participantData['hasPaid']=data.get('hadPaid',na)
                 # print('flag7')
                 
         else:

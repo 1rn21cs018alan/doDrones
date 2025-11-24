@@ -12,6 +12,9 @@ from supabaseHandler import userExists,insertUser,getUserData,upsertParticipantD
 from sendEmail import sendMail
 import random
 import time
+import hashlib
+import json
+
 
 
 load_dotenv()
@@ -47,6 +50,21 @@ def validatePassword(x):
 def validateEmail(x):
     s=r"^[^@]+@[^@]+\.[^@]+$"
     return re.match(s,x)
+
+def generate_sha256_hash(input_data):
+    """
+    Generates the SHA-256 hash of a given string.
+
+    Args:
+        input_data (str): The string to be hashed.
+
+    Returns:
+        str: The SHA-256 hash as a hexadecimal string.
+    """
+    encoded_data = input_data.encode('utf-8')
+    sha256_hash_object = hashlib.sha256(encoded_data)
+    hex_hash = sha256_hash_object.hexdigest()
+    return hex_hash
 
 # @app.route('/login', methods=['GET', 'POST'])
 # def login():
@@ -370,6 +388,56 @@ def saveProfile():
             return isSaved
         return notSaved('Request not Saved'),400
     return notSaved('user not logged in'),400
+
+
+REDIRECT_LOG_FILE = "redirect_logs.txt"
+CALLBACK_LOG_FILE = "callback_logs.txt"
+if isDevelopment:
+    REDIRECT_LOG_FILE="/home/ubuntu/doDrones/"+REDIRECT_LOG_FILE
+    CALLBACK_LOG_FILE="/home/ubuntu/doDrones/"+CALLBACK_LOG_FILE
+def log_request_details(request,FILENAME=CALLBACK_LOG_FILE):
+    """Extracts relevant request details and logs them to a file."""
+    timestamp = datetime.now().isoformat()
+    log_entry = {
+        "timestamp": timestamp,
+        "method": request.method,
+        "url": request.url,
+        "headers": dict(request.headers),
+        "remote_addr": request.remote_addr,
+        "form_data": dict(request.form),
+        "json_data": request.get_json(silent=True),
+        "args": dict(request.args),
+    }
+
+    # Append the JSON representation of the log entry to the file
+    with open(REDIRECT_LOG_FILE, "a") as f:
+        f.write(json.dumps(log_entry, indent=4) + "\n---\n")
+
+    print(f"Logged request details to {REDIRECT_LOG_FILE}")
+
+@app.route("/api/txn-callback", methods=["GET", "POST", "PUT"])
+def handle_callback():
+    """
+    Endpoint to receive callback requests.
+    It logs all request details and returns a simple success response.
+    """
+    log_request_details(request,CALLBACK_LOG_FILE)
+    return jsonify({"status": "received", "message": "Request details logged successfully."}), 200
+
+@app.route("/api/txn-redirect", methods=["GET", "POST", "PUT"])
+def handle_redirect():
+    """
+    Endpoint to receive callback requests.
+    It logs all request details and returns a simple success response.
+    """
+    log_request_details(request,REDIRECT_LOG_FILE)
+    return jsonify({"status": "received", "message": "Request details logged successfully."}), 200
+
+
+
+def sendTransactionStatusToEmail(reciever,status):
+    ...
+
 
 if __name__ == '__main__':
     if not isDevelopment:

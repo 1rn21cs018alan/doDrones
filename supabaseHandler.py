@@ -3,6 +3,8 @@ from supabase import create_client, Client
 from dotenv import load_dotenv
 import bcrypt
 import datetime
+import random
+import time
 load_dotenv()
 url: str = os.environ.get("SUPABASE_URL")
 key: str = os.environ.get("SUPABASE_KEY")
@@ -120,6 +122,23 @@ def getUserData(email):
                     participantData['shareWithPartners']=data.get('shareWithPartners',na)
                     participantData['shortBio']=data.get('shortBio',na)
                     participantData['workEmail']=data.get('workEmail',na)
+                    participantData['hasPaid']=data.get('hasPaid',na)
+                    if participantData['hasPaid']=='true' and data.get('transaction_id') is not None:
+                        response=(
+                            supabase.table("money_transactions")
+                            .select()
+                            .eq("id",data.get('transaction_id'))
+                            .execute()
+                        )
+                        if len(response.data)>0:
+                            transaction_id=response.data[0].get("id")
+                            order_id=response.data[0].get("transaction_id")
+                            timeStamp=response.data[0].get("completed_at_server_time")
+                            if timeStamp!=None:
+                                participantData['transaction_datetime']=timeStamp
+                            participantData['transaction_id']=transaction_id
+                            participantData['order_id']=order_id
+                                
                 # print('flag7')
                 
         else:
@@ -229,9 +248,141 @@ def upsertParticipantData(email,data):
     return False
     ...
 
-# if __name__ == "__main__":
-#     import random
-#     import time
-#     random.seed(time.time_ns())
-#     v = random.randint(100000, 999999)
-#     print(v)
+
+def insertTransaction(email,base_amount,tax_amount,total_amount,name,organisation):
+    import traceback
+    try:
+        response = (
+            supabase.table("user")
+            .select("email,id,participant_id").eq('email', email)
+        ).execute()
+        # print("flag1")
+        if len(response.data)>0:
+            # print("flag2")
+            userID=response.data[0].get("id")
+            participant_id=response.data[0].get("participant_id")
+            if(participant_id is not None):
+                # print("flag3")
+                random.seed(time.time_ns())
+                rand_val=random.randint(100000,999999)
+                while transactionExists(rand_val):
+                    rand_val=random.randint(100000,999999)
+                    # print("flag4",rand_val)
+                # print("flag5")
+                response = (
+                    supabase.table("money_transactions")
+                    .insert({
+                        "transaction_id":rand_val,
+                        "participant_id":participant_id,
+                        "user_id":userID,
+                        "base_amount":base_amount,
+                        "tax_amount":tax_amount,
+                        "total_amount":total_amount,
+                        "name":name,
+                        "organization":organisation,
+                        "hasCompleted":False,
+                        "started_at_server_time":convertTimeStamp(datetime.datetime.now())
+                    })
+                    .execute()
+                )
+                # print("flag6")
+                if len(response.data)==1:
+                    # print("flag7")
+                    return rand_val
+                ...
+    except Exception as e:
+        traceback.print_exc()
+    return SUPABASE_GENERAL_ERROR
+
+def transactionExists(txnId):
+    try:
+        response = (
+            supabase.table("money_transactions")
+            .select()
+            .eq('transaction_id', txnId)
+        ).execute()
+        if response.data[0] is not None:
+            return True
+    except:
+        return False
+
+def completeTransaction(txnId,txn_code,trans_ref_no,status_msg,merc_id,signature):
+    try:
+        response = (
+            supabase.table("money_transactions")
+            .update({
+                "txn_code":txn_code,
+                "trans_ref_no":trans_ref_no,
+                "status_msg":status_msg,
+                "merc_id":merc_id,
+                "signature":signature,
+                "hasCompleted":True
+            })
+            .eq('transaction_id', txnId)
+        ).execute()
+        if response.data[0] is not None:
+            return True
+    except:
+        return False
+
+def successfulTransaction(txnId):
+    try:
+        response = (
+            supabase.table("money_transactions")
+            .update({"completed_at_server_time":convertTimeStamp(datetime.datetime.now())})
+            .eq('transaction_id', txnId)
+        ).execute()
+        if len(response.data)==1:
+            recordID=response.data[0].get('id')
+            userID=response.data[0].get('user_id')
+            participantID=response.data[0].get('participant_id')
+            if participantID is not None:
+                response2=(
+                    supabase.table("participant")
+                    .select(count='exact',head=True)
+                    .neq('ddaeid',None)
+                    .execute()
+                )
+                nextDdaeIdNo=response2.count+1
+                DdaeId="DDAE25%03d"%nextDdaeIdNo
+                response3=(
+                    supabase.table("participant")
+                    .update({"hasPaid":"true","transaction_id":recordID,"ddaeid":DdaeId})
+                    .eq('id',participantID)
+                    .execute()
+                )
+                response4=(
+                    supabase.table("user")
+                    .select()
+                    .eq('id',userID)
+                    .execute()
+                )
+                return response4.data[0].get("email")
+            return True
+    except:
+        return False
+
+def findUserbyOrderId(txnId):
+    response = (
+        supabase.table("participant")
+        .select('money_transactions(id,transaction_id)')
+        .eq("money_transactions.transaction_id", txnId)
+    ).execute()
+    return response.data
+
+    ...
+if __name__ == "__main__":
+    # import random
+    import time
+    print(findUserbyOrderId(700980))
+    # successfulTransaction(700980)
+    # random.seed(time.time_ns())
+    # v = random.randint(100000, 999999)
+    # print(v)
+    # print(completeTransaction(
+    #     573785,
+    #     "SPG-0000",
+    #     "UPIINTENTed03c79dcdab4200200785",
+    #     "SUCCESS",
+    #     "CONF_FC_5737851764163563156",
+    #     "682fa99c3aa6ddd6fbbdf6805f1553690bde2b2d0cfa3fb2a17e9ba7b19a6312"))

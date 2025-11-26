@@ -1,5 +1,6 @@
 import os
-from flask import Flask, request, redirect, url_for, render_template,session,send_from_directory,make_response,jsonify
+from flask import Flask, request, redirect, url_for, render_template,session\
+    ,send_from_directory,make_response,jsonify
 from werkzeug.utils import secure_filename
 from werkzeug.exceptions import InternalServerError
 from uploader import upload
@@ -8,12 +9,14 @@ from flask_session import Session
 from datetime import timedelta,datetime
 import re
 from supabaseHandler import userExists,insertUser,getUserData,upsertParticipantData\
+    ,transactionExists,insertTransaction,completeTransaction,successfulTransaction\
     ,SUPABASE_GENERAL_ERROR,SUPABASE_NO_SUCH_USER_ERROR,SUPABASE_USER_ALREADY_VERIFIED
 from sendEmail import sendMail
 import random
 import time
 import hashlib
 import json
+import orderGenerator
 
 
 
@@ -50,21 +53,6 @@ def validatePassword(x):
 def validateEmail(x):
     s=r"^[^@]+@[^@]+\.[^@]+$"
     return re.match(s,x)
-
-def generate_sha256_hash(input_data):
-    """
-    Generates the SHA-256 hash of a given string.
-
-    Args:
-        input_data (str): The string to be hashed.
-
-    Returns:
-        str: The SHA-256 hash as a hexadecimal string.
-    """
-    encoded_data = input_data.encode('utf-8')
-    sha256_hash_object = hashlib.sha256(encoded_data)
-    hex_hash = sha256_hash_object.hexdigest()
-    return hex_hash
 
 # @app.route('/login', methods=['GET', 'POST'])
 # def login():
@@ -166,6 +154,7 @@ def uploadFile():
 @app.route("/portal")
 @app.route("/portal/profile")
 @app.route("/portal/registration")
+@app.route("/portal/very-secret-url/registration")
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -392,7 +381,7 @@ def saveProfile():
 
 REDIRECT_LOG_FILE = "redirect_logs.txt"
 CALLBACK_LOG_FILE = "callback_logs.txt"
-if isDevelopment:
+if not isDevelopment:
     REDIRECT_LOG_FILE="/home/ubuntu/doDrones/"+REDIRECT_LOG_FILE
     CALLBACK_LOG_FILE="/home/ubuntu/doDrones/"+CALLBACK_LOG_FILE
 def log_request_details(request,FILENAME=CALLBACK_LOG_FILE):
@@ -410,18 +399,23 @@ def log_request_details(request,FILENAME=CALLBACK_LOG_FILE):
     }
 
     # Append the JSON representation of the log entry to the file
-    with open(REDIRECT_LOG_FILE, "a") as f:
+    with open(FILENAME, "a") as f:
         f.write(json.dumps(log_entry, indent=4) + "\n---\n")
 
-    print(f"Logged request details to {REDIRECT_LOG_FILE}")
+    print(f"Logged request details to {FILENAME}")
 
-@app.route("/api/txn-callback", methods=["GET", "POST", "PUT"])
+@app.route("/api/txn-callback", methods=["POST"])
 def handle_callback():
     """
     Endpoint to receive callback requests.
     It logs all request details and returns a simple success response.
     """
     log_request_details(request,CALLBACK_LOG_FILE)
+    data=request.get_json(silent=True)
+    completeTransaction(data['o_id'],data['code'],data["trans_ref_no"],data["status_msg"],data["merc_id"],data["signature"])
+    if(data["status_msg"]=="SUCCESS"):
+        email=successfulTransaction(data['o_id'])
+        sendTransactionStatusToEmail(email,"SUCCESS")
     return jsonify({"status": "received", "message": "Request details logged successfully."}), 200
 
 @app.route("/api/txn-redirect", methods=["GET", "POST", "PUT"])
@@ -431,13 +425,94 @@ def handle_redirect():
     It logs all request details and returns a simple success response.
     """
     log_request_details(request,REDIRECT_LOG_FILE)
-    return jsonify({"status": "received", "message": "Request details logged successfully."}), 200
+    return redirect("/portal")
+    # return jsonify({"status": "received", "message": "Request details logged successfully."}), 200
 
 
 
 def sendTransactionStatusToEmail(reciever,status):
+    if status=="SUCCESS":
+        textMail=render_template("transactionSuccessEmailText.html")
+        HTMLMail=render_template("transactionSuccessEmailHTML.html")
+        print(reciever)
+        print(textMail)
+        sendMail(reciever,"You're In — Your Do Drones 2025 Seat Is Confirmed ✨🚀",textMail,HTMLMail)
     ...
 
+
+@app.route("/api/get-user-payment-data",methods=['POST'])
+def generatePaymentDetails():
+    email=session.get('name')
+    # print("started api")
+    if(email is not None):
+        # print("user exists")
+        import traceback
+        try:
+            user_data=getUserData(email)
+            # print("participant exists",user_data)
+            # print("user_data.get('name')!=None",user_data.get('name')!=None )
+            # print("user_data.get('participantType') in ['student','faculty','professional']",user_data.get('participantType') in ['student','faculty','professional']   )
+            # print("user_data.get('organization')!=None",user_data.get('organization')!=None )
+            # print("user_data.get('firstName')!=None",user_data.get('firstName')!=None   )
+            # print("user_data.get('delegate_type')!=None",user_data.get('delegate_type')!=None   )
+            # print("user_data.get('phoneWhatsApp')!=None",user_data.get('phoneWhatsApp')!=None   )
+            # print("user_data.get('hasPaid')!=None",user_data.get('hasPaid')!=None   )
+            # print("user_data.get('city')!=None",user_data.get('city')!=None )
+            # print("user_data.get('iiscAffiliated')!=None ",user_data.get('iiscAffiliated')!=None    )
+            if(
+                user_data.get('name')!=None and
+                user_data.get('participantType') in ['student','faculty','professional','test','test_tax'] and
+                user_data.get('organization')!=None and
+                user_data.get('firstName')!=None and
+                user_data.get('designation')!=None and
+                user_data.get('phoneWhatsApp')!=None and
+                user_data.get('hasPaid')!=None and
+                user_data.get('city')!=None and
+                user_data.get('iiscAffiliated')!=None 
+            ):
+                # print("user compete")
+                taxApplies=user_data.get('iiscAffiliated')!="yes"
+                costs={
+                    'student':6000,
+                    'faculty':9000,
+                    'professional':12000,
+                    'test':1,
+                    'test_tax':6,
+                }
+                user_data['base_cost']=int(costs[user_data.get('participantType')])
+                user_data['tax']=int(user_data['base_cost']*0.18) #18% GST
+                if not taxApplies:
+                    user_data['tax']=0
+                user_data['total_amount']=int(user_data['base_cost']+user_data['tax'])
+                transaction_id=0
+                if(user_data['hasPaid']!='true'):
+                    transaction_id=insertTransaction(
+                        email=email,
+                        base_amount=user_data['base_cost'],
+                        tax_amount=user_data['tax'],
+                        total_amount=user_data['total_amount'],
+                        name=user_data['name'],
+                        organisation=user_data['organization']
+                    )
+                    if(transaction_id is SUPABASE_GENERAL_ERROR):
+                        return {"issue":"transaction id not generated"},400
+                    orderFromData=orderGenerator.generate(
+                        orderID=transaction_id,
+                        name=user_data['name'],
+                        email=email,
+                        delegateType=user_data['participantType'],
+                        amount=user_data['total_amount']
+                    )
+                    user_data['json_data']=orderFromData['json_data']
+                    user_data['Signature']=orderFromData['Signature']
+                user_data['base_cost']=str(user_data['base_cost'])
+                user_data['tax']=str(user_data['tax'])
+                user_data['total_amount']=str(user_data['total_amount'])
+                return user_data
+            return {"user_data":user_data,"issue":"Profile not Completed"},400
+        except:
+            traceback.print_exc()
+    return {"issue":"Unkown error has occured"},400
 
 if __name__ == '__main__':
     if not isDevelopment:

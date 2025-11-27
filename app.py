@@ -425,7 +425,7 @@ def handle_redirect():
     It logs all request details and returns a simple success response.
     """
     log_request_details(request,REDIRECT_LOG_FILE)
-    url="/portal/very-secret-url/registration"
+    url="/portal/registration"
     if(request.args.get('o_id')!=None):
         url+="?o_id="+str(request.args.get('o_id'))
     return redirect(url)

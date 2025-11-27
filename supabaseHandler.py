@@ -138,6 +138,7 @@ def getUserData(email):
                                 participantData['transaction_datetime']=timeStamp
                             participantData['transaction_id']=transaction_id
                             participantData['order_id']=order_id
+                            participantData['ddaeId']=data.get('ddaeid')
                                 
                 # print('flag7')
                 

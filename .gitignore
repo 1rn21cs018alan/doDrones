@@ -215,4 +215,6 @@ token.json
 /typescript_side
 /typescript_side/dodrones2025
 /typescript_side/dodrones2025react
-*logs.txt
+callback_logs.txt
+redirect_logs.txt
+request_logs.txt

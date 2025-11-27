@@ -425,7 +425,10 @@ def handle_redirect():
     It logs all request details and returns a simple success response.
     """
     log_request_details(request,REDIRECT_LOG_FILE)
-    return redirect(url_for("/portal/very-secret-url/registration"),**(request.args.to_dict()))
+    url="/portal/very-secret-url/registration"
+    if(request.args.get('o_id')!=None):
+        url+="?o_id="+str(request.args.get('o_id'))
+    return redirect(url)
     # return jsonify({"status": "received", "message": "Request details logged successfully."}), 200
 
 

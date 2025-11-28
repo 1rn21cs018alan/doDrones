@@ -372,6 +372,30 @@ def findUserbyOrderId(txnId):
     return response.data
 
     ...
+
+def getAllData():
+    participantResponse=(
+        supabase.table("participant")
+        .select()
+        .execute()
+    )
+    userResponse=(
+        supabase.table("user")
+        .select()
+        .execute()
+    )
+    moneyResponse=(
+        supabase.table("money_transactions")
+        .select()
+        .execute()
+    )
+    return {
+        "participant":participantResponse.data,
+        "user":userResponse.data,
+        "money":moneyResponse.data
+    }
+    ...
+
 if __name__ == "__main__":
     # import random
     import time

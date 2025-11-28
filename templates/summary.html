@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Summary</title>
+    <style>
+        :root {
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-sub: #6b7280;
+            --accent: #3b82f6;
+            --success-bg: #d1fae5;
+            --success-text: #065f46;
+            --danger-bg: #fee2e2;
+            --danger-text: #991b1b;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        h2 { margin-top: 0; font-size: 1.25rem; }
+        h3 { font-size: 1rem; color: var(--text-sub); margin-bottom: 10px; margin-top: 20px;}
+
+        /* Dashboard Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-label { font-size: 0.75rem; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.05em; }
+        .stat-value { font-size: 1.25rem; font-weight: 700; margin-top: 5px; }
+
+        /* Search Bar Styles */
+        .search-wrapper {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background-color: var(--bg-color);
+            padding: 10px 0;
+            margin-top: 10px;
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 12px 15px;
+            font-size: 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            outline: none;
+            box-sizing: border-box; /* Keeps padding inside width */
+            transition: border-color 0.2s;
+        }
+
+        #searchInput:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        /* Participant List */
+        .participant-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        details.p-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        details.p-card[open] { box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+
+        summary {
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            list-style: none; 
+            outline: none;
+        }
+        
+        summary::-webkit-details-marker { display: none; }
+
+        .p-summary-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .p-name { font-weight: 600; font-size: 1rem; }
+        .p-role { font-size: 0.85rem; color: var(--text-sub); }
+
+        .badge {
+            font-size: 0.7rem;
+            padding: 4px 8px;
+            border-radius: 9999px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .paid-yes { background-color: var(--success-bg); color: var(--success-text); }
+        .paid-no { background-color: var(--danger-bg); color: var(--danger-text); }
+
+        .p-details {
+            padding: 0 15px 15px 15px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 0.9rem;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .detail-row:last-child { border-bottom: none; }
+        
+        .dr-label { color: var(--text-sub); }
+        .dr-val { font-weight: 500; text-align: right; max-width: 60%; word-break: break-word;}
+        
+        a { color: var(--accent); text-decoration: none; }
+    </style>
+</head>
+<body>
+
+    <div id="content">
+        <p style="text-align:center; color: #666;">Loading data...</p>
+    </div>
+
+    <script>
+        let dbData = null;
+        try {
+            const rawString = {{ db_summary_json | tojson }};
+            dbData = JSON.parse(rawString);
+        } catch (e) {
+            document.getElementById('content').innerHTML = "<p style='color:red; text-align:center'>Error parsing JSON data.<br>"+e.message+"</p>";
+            console.error(e);
+        }
+
+        if (dbData) {
+            renderDashboard(dbData);
+        }
+
+        function renderDashboard(data) {
+            const container = document.getElementById('content');
+            let html = '';
+
+            // --- SECTION 1: FINANCIALS ---
+            html += `<h2>Financials & Counts</h2>`;
+            html += `<div class="stats-grid">
+                <div class="stat-card">
+                    <span class="stat-label">Income (Taxed)</span>
+                    <span class="stat-value" style="color:#065f46">${data["Income including taxes"].toLocaleString()}</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Income (Net)</span>
+                    <span class="stat-value">${data["Income without taxes"].toLocaleString()}</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Total Users</span>
+                    <span class="stat-value">${data["total users"]}</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Participants</span>
+                    <span class="stat-value">${data["total participants"]}</span>
+                </div>
+            </div>`;
+
+            // --- SECTION 2: BREAKDOWN ---
+            html += `<h3>Breakdown</h3>`;
+            html += `<div class="stats-grid">
+                <div class="stat-card">
+                    <span class="stat-label">Students</span>
+                    <span class="stat-value">${data["Student payment count"]}</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Faculty</span>
+                    <span class="stat-value">${data["Faculty payment count"]}</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Professional</span>
+                    <span class="stat-value">${data["Professional payment count"]}</span>
+                </div>
+                 <div class="stat-card">
+                    <span class="stat-label">Total Txns</span>
+                    <span class="stat-value">${data["Total Transactions"]}</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Success Txn</span>
+                    <span class="stat-value" style="color:green">${data["Successful Transactions"]}</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Failed Txn</span>
+                    <span class="stat-value" style="color:red">${data["Unsuccessful Transactions"]}</span>
+                </div>
+            </div>`;
+
+            // --- SECTION 3: SEARCH & LIST ---
+            const count = data.participants ? data.participants.length : 0;
+            html += `<h3 id="listHeader">Participants List (${count})</h3>`;
+            
+            // Search Bar
+            html += `
+            <div class="search-wrapper">
+                <input type="text" id="searchInput" placeholder="Search by name, email, or org...">
+            </div>
+            `;
+
+            html += `<div class="participant-list" id="pList">`;
+
+            if(data.participants && data.participants.length > 0){
+                data.participants.forEach(p => {
+                    const isPaid = p.has_paid;
+                    const paidClass = isPaid ? 'paid-yes' : 'paid-no';
+                    const paidText = isPaid ? 'PAID' : 'UNPAID';
+
+                    // Combine searchable text into a data-attribute for easy filtering
+                    const searchText = `${p.first_name} ${p.org} ${p.login_email} ${p.work_email}`.toLowerCase();
+
+                    html += `
+                    <details class="p-card" data-search="${searchText}">
+                        <summary>
+                            <div class="p-summary-content">
+                                <span class="p-name">${p.first_name}</span>
+                                <span class="p-role">${p.designation || 'N/A'} @ ${p.org || 'N/A'}</span>
+                            </div>
+                            <span class="badge ${paidClass}">${paidText}</span>
+                        </summary>
+                        <div class="p-details">
+                            <div class="detail-row"><span class="dr-label">ID</span><span class="dr-val">#${p.id}</span></div>
+                            <div class="detail-row"><span class="dr-label">DDAE ID</span><span class="dr-val">${p.ddaeid || '-'}</span></div>
+                            <div class="detail-row"><span class="dr-label">Login Email</span><span class="dr-val"><a href="mailto:${p.login_email}">${p.login_email}</a></span></div>
+                            <div class="detail-row"><span class="dr-label">Work Email</span><span class="dr-val"><a href="mailto:${p.work_email}">${p.work_email || '-'}</a></span></div>
+                            <div class="detail-row"><span class="dr-label">Mobile</span><span class="dr-val"><a href="tel:${p.whatsapp_phone}">${p.whatsapp_phone || '-'}</a></span></div>
+                            <div class="detail-row"><span class="dr-label">Work Phone</span><span class="dr-val"><a href="tel:${p.work_phone}">${p.work_phone || '-'}</a></span></div>
+                            <div class="detail-row"><span class="dr-label">City</span><span class="dr-val">${p.city || '-'}</span></div>
+                        </div>
+                    </details>
+                    `;
+                });
+            } else {
+                html += `<div style="text-align:center; padding:20px; color:#888;">No participants found.</div>`;
+            }
+            html += `</div>`;
+
+            container.innerHTML = html;
+
+            // Attach Event Listener for Search
+            attachSearchListener();
+        }
+
+        function attachSearchListener() {
+            const input = document.getElementById('searchInput');
+            const listHeader = document.getElementById('listHeader');
+            const cards = document.querySelectorAll('.p-card');
+
+            if(!input) return;
+
+            input.addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase();
+                let visibleCount = 0;
+
+                cards.forEach(card => {
+                    const searchContent = card.getAttribute('data-search');
+                    if (searchContent.includes(term)) {
+                        card.style.display = 'block';
+                        visibleCount++;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+
+                // Update the header text with count
+                listHeader.textContent = `Participants List (${visibleCount} found)`;
+            });
+        }
+    </script>
+</body>
+</html>

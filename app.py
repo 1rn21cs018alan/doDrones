@@ -9,7 +9,7 @@ from flask_session import Session
 from datetime import timedelta,datetime
 import re
 from supabaseHandler import userExists,insertUser,getUserData,upsertParticipantData\
-    ,transactionExists,insertTransaction,completeTransaction,successfulTransaction\
+    ,transactionExists,insertTransaction,completeTransaction,successfulTransaction,getAllData\
     ,SUPABASE_GENERAL_ERROR,SUPABASE_NO_SUCH_USER_ERROR,SUPABASE_USER_ALREADY_VERIFIED
 from sendEmail import sendMail
 import random
@@ -516,6 +516,80 @@ def generatePaymentDetails():
         except:
             traceback.print_exc()
     return {"issue":"Unkown error has occured"},400
+
+
+@app.route("/admin_only/summary")
+def event_admin_summary():
+    rawData=getAllData()
+    summary={
+        "Income including taxes":0,
+        "Income without taxes":0,
+        "Student payment count":0,
+        "Faculty payment count":0,
+        "Professional payment count":0,
+        "Total Transactions":0,
+        "Successful Transactions":0,
+        "Unsuccessful Transactions":0,
+        "total users":len(rawData['user']),
+        "total participants":len(rawData['participant']),
+        "participants":[]
+    }
+    money_linking={}
+    for i in rawData['money']:
+        id=i.get("id")
+        money_linking[id]=i
+        status=i.get("status_msg")
+        base_amt=i.get("base_amount")
+        total_amt=i.get("total_amount")
+        if status is not None:
+            summary['Total Transactions']+=1
+            if status=="SUCCESS":
+                summary['Successful Transactions']+=1
+                summary['Income without taxes']+=base_amt
+                summary['Income including taxes']+=total_amt
+            else:
+                summary['Unsuccessful Transactions']+=1
+    participant_user_linking={}
+    for i in rawData['user']:
+        p_id=i.get("participant_id")
+        if p_id is not None:
+            participant_user_linking[p_id]=i
+    
+    for i in rawData['participant']:
+        id=i.get("id")
+        login_email=participant_user_linking[id].get("email")
+        work_email=i.get("workEmail")
+        first_name=i.get("firstName")
+        org=i.get("organization")
+        designation=i.get("participantType")
+        has_paid=i.get("hasPaid")=='true'
+        whatsapp_phone=i.get("phoneWhatsApp")
+        work_phone=i.get("phoneWork")
+        ddaeid=i.get("ddaeid")
+        city=i.get("city")
+        txn_id=i.get("transaction_id")
+        summary['participants'].append({
+            "id":id,
+            "login_email":login_email,
+            "work_email":work_email,
+            "first_name":first_name,
+            "org":org,
+            "designation":designation,
+            "has_paid":has_paid,
+            "whatsapp_phone":whatsapp_phone,
+            "work_phone":work_phone,
+            "ddaeid":ddaeid,
+            "city":city,
+        })
+        if txn_id is not None:
+            if designation=='faculty':
+                summary['Faculty payment count']+=1
+            elif designation=='student':
+                summary['Student payment count']+=1
+            elif designation=='professional':
+                summary['Professional payment count']+=1
+    jsonData=json.dumps(summary)
+    return render_template('summary.html', db_summary_json=jsonData)
 
 if __name__ == '__main__':
     if not isDevelopment:

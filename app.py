@@ -9,7 +9,8 @@ from flask_session import Session
 from datetime import timedelta,datetime
 import re
 from supabaseHandler import userExists,insertUser,getUserData,upsertParticipantData\
-    ,transactionExists,insertTransaction,completeTransaction,successfulTransaction,getAllData\
+    ,transactionExists,insertTransaction,completeTransaction,successfulTransaction\
+    ,getAllData,getTransactionCount\
     ,SUPABASE_GENERAL_ERROR,SUPABASE_NO_SUCH_USER_ERROR,SUPABASE_USER_ALREADY_VERIFIED
 from sendEmail import sendMail
 import random
@@ -488,7 +489,9 @@ def generatePaymentDetails():
                     user_data['tax']=0
                 user_data['total_amount']=int(user_data['base_cost']+user_data['tax'])
                 transaction_id=0
-                if(user_data['hasPaid']!='true'):
+                max_payments_reached=getTransactionCount()>70
+                user_data['max_registrations_reached']=max_payments_reached
+                if(user_data['hasPaid']!='true' and not max_payments_reached):
                     transaction_id=insertTransaction(
                         email=email,
                         base_amount=user_data['base_cost'],

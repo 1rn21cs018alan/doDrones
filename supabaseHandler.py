@@ -396,10 +396,20 @@ def getAllData():
     }
     ...
 
+def getTransactionCount():
+    response=(
+        supabase.table("money_transactions")
+        .select(count='exact',head=True)
+        .eq("status_msg","SUCCESS")
+        .execute()
+    )
+    return response.count
+    
 if __name__ == "__main__":
     # import random
     import time
-    print(findUserbyOrderId(700980))
+    print(getTransactionCount())
+    # print(findUserbyOrderId(700980))
     # successfulTransaction(700980)
     # random.seed(time.time_ns())
     # v = random.randint(100000, 999999)

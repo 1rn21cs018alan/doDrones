@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Data Table Display</title>
+    <!-- Load Tailwind CSS for modern, responsive styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for better typography and table appearance */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fb;
+        }
+        /* Style for the table container */
+        #table-container {
+            max-width: 95%;
+            margin: 2rem auto;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border-radius: 0.5rem;
+            overflow: hidden; /* Ensures rounded corners are respected */
+        }
+        /* Responsive scroll for small screens */
+        @media (max-width: 768px) {
+            .table-wrapper {
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+
+
+    <div class="table-wrapper">
+        <!-- The table will be injected into this container by JavaScript -->
+        <div id="table-container" class="bg-white p-6">
+            <p id="loading-message" class="text-center text-gray-500 py-10">Loading data...</p>
+        </div>
+    </div>
+
+    <script>
+        // ===================================================================================
+        // 1. PLACEHOLDER FOR SERVER-SIDE INJECTION
+        // ===================================================================================
+        const SERVER_DATA_JSON = {{ json_data | tojson}};
+
+        // ===================================================================================
+        // 2. JAVASCRIPT LOGIC TO BUILD THE TABLE
+        // ===================================================================================
+
+        /**
+         * Parses a JSON string and generates an HTML table element.
+         * @param {string} jsonString - The JSON string containing an array of objects.
+         * @returns {HTMLTableElement|null} The generated table element or null on error.
+         */
+        function generateTable(jsonString) {
+            const container = document.getElementById('table-container');
+            const loadingMessage = document.getElementById('loading-message');
+
+            if (loadingMessage) {
+                loadingMessage.remove(); // Remove loading message once we start processing
+            }
+
+            let data;
+            try {
+                data = JSON.parse(jsonString);
+            } catch (error) {
+                console.error("Error parsing JSON data:", error);
+                container.innerHTML = '<p class="text-red-600 font-bold">Error: Invalid JSON data received from server.</p>';
+                return null;
+            }
+
+            if (!Array.isArray(data) || data.length === 0) {
+                container.innerHTML = '<p class="text-gray-500">No data records found to display.</p>';
+                return null;
+            }
+
+            // 1. Get Column Headers (Keys from the first object)
+            const headers = Object.keys(data[0]);
+
+            // 2. Create Table Element
+            const table = document.createElement('table');
+            table.className = 'min-w-full divide-y divide-gray-200 border-collapse';
+
+            // 3. Create Table Header (<thead>)
+            const thead = table.createTHead();
+            thead.className = 'bg-gray-100';
+            const headerRow = thead.insertRow();
+            
+            headers.forEach(headerText => {
+                let th = document.createElement('th');
+                th.textContent = headerText;
+                // Tailwind classes for header styling
+                th.className = 'px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider rounded-t-lg first:rounded-tl-lg last:rounded-tr-lg';
+                headerRow.appendChild(th);
+            });
+
+            // 4. Create Table Body (<tbody>)
+            const tbody = document.createElement('tbody');
+            tbody.className = 'bg-white divide-y divide-gray-200';
+
+            data.forEach((rowData, rowIndex) => {
+                const row = tbody.insertRow();
+                row.className = rowIndex % 2 === 0 ? 'bg-white hover:bg-gray-50' : 'bg-gray-50 hover:bg-gray-100';
+
+                headers.forEach(key => {
+                    const cell = row.insertCell();
+                    const cellValue = rowData[key] !== undefined ? rowData[key] : '';
+                    
+                    // Set content and apply default styling for all cells
+                    cell.textContent = cellValue;
+                    // Tailwind classes for cell styling (default text color applied)
+                    cell.className = 'px-3 py-4 whitespace-nowrap text-sm text-gray-700';
+                    
+                    // Conditional coloring logic for 'Status' column has been removed.
+                });
+            });
+
+            table.appendChild(tbody);
+            return table;
+        }
+
+        // 5. Execution on Document Load
+        document.addEventListener('DOMContentLoaded', () => {
+            const tableContainer = document.getElementById('table-container');
+
+            // Generate the table from the global JSON string variable
+            const tableElement = generateTable(SERVER_DATA_JSON);
+            
+            // Append the generated table to the container
+            if (tableElement) {
+                tableContainer.innerHTML = ''; // Clear container before appending
+                tableContainer.appendChild(tableElement);
+            }
+        });
+    </script>
+
+</body>
+</html>

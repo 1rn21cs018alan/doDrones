@@ -10,7 +10,7 @@ from datetime import timedelta,datetime
 import re
 from supabaseHandler import userExists,insertUser,getUserData,upsertParticipantData\
     ,transactionExists,insertTransaction,completeTransaction,successfulTransaction\
-    ,getAllData,getTransactionCount\
+    ,getAllData,getTransactionCount,convertTimeStamp\
     ,SUPABASE_GENERAL_ERROR,SUPABASE_NO_SUCH_USER_ERROR,SUPABASE_USER_ALREADY_VERIFIED
 from sendEmail import sendMail
 import random
@@ -591,8 +591,66 @@ def event_admin_summary():
                 summary['Student payment count']+=1
             elif designation=='professional':
                 summary['Professional payment count']+=1
+            # print("uuuhhh")
+            # print(money_linking[txn_id]['completed_at_server_time'])
+            timeStamp=(
+                convertTimeStamp(
+                money_linking[txn_id]['completed_at_server_time']
+                )+timedelta(hours=5,minutes=30)
+            )
+            summary['participants'][-1]['paid_at']=f"{str(timeStamp.day)}-{str(timeStamp.month)}-{str(timeStamp.year)} | {str(timeStamp.hour)}:{str(timeStamp.minute)}:{str(timeStamp.second)}"
+            summary['participants'][-1]['paid_at_object']=timeStamp
+    summary['participants']=sorted(
+        summary['participants'],
+        key = lambda x:x['has_paid'],
+        reverse=True
+    )
+    summary['participants']=sorted(
+        summary['participants'],
+        key = lambda x:x.get('paid_at_object',datetime(2000,1,1)),
+        reverse=True
+    )
+    for i in summary['participants']:
+        i['paid_at_object']=None
     jsonData=json.dumps(summary)
     return render_template('summary.html', db_summary_json=jsonData)
+
+@app.route("/admin_only/transactions")
+def event_admin_transaction_summary():
+    rawData=getAllData()
+    successTransactions=[i for i in rawData['money'] if i['status_msg']=="SUCCESS"]
+    filteredCols=[
+    "name",
+    "total_amount",
+    "completed_at_server_time",
+    "trans_ref_no",
+    "merc_id",
+    "organization",
+    "base_amount",
+    # "tax_amount",
+    ]
+    filteredData=[]
+    for i in successTransactions:
+        record={"#":0}
+        for j in filteredCols:
+            record[j]=i[j]
+        timeStamp=convertTimeStamp(record['completed_at_server_time'])
+        record['paid_at']=f"{str(timeStamp.day)}-{str(timeStamp.month)}-{str(timeStamp.year)} | {str(timeStamp.hour)}:{str(timeStamp.minute)}:{str(timeStamp.second)}"
+        record['paid_at_object']=timeStamp
+        record.pop('completed_at_server_time')
+        filteredData.append(record)
+    
+    filteredData=sorted(
+        filteredData,
+        key= lambda x:x['paid_at_object']
+    )
+    for ind in range(len(filteredData)):
+        i=filteredData[ind]
+        i['#']=ind+1
+        i.pop('paid_at_object')
+    
+    json_data=json.dumps(filteredData)
+    return render_template("transaction_summary.html",json_data=json_data)
 
 if __name__ == '__main__':
     if not isDevelopment:

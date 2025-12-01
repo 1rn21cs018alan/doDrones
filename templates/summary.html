@@ -238,7 +238,7 @@
 
                     // Combine searchable text into a data-attribute for easy filtering
                     const searchText = `${p.first_name} ${p.org} ${p.login_email} ${p.work_email}`.toLowerCase();
-
+                    paidTimeHtml=`<div class="detail-row"><span class="dr-label">Paid At</span><span class="dr-val">${p.paid_at}</span></div>`
                     html += `
                     <details class="p-card" data-search="${searchText}">
                         <summary>
@@ -256,6 +256,7 @@
                             <div class="detail-row"><span class="dr-label">Mobile</span><span class="dr-val"><a href="tel:${p.whatsapp_phone}">${p.whatsapp_phone || '-'}</a></span></div>
                             <div class="detail-row"><span class="dr-label">Work Phone</span><span class="dr-val"><a href="tel:${p.work_phone}">${p.work_phone || '-'}</a></span></div>
                             <div class="detail-row"><span class="dr-label">City</span><span class="dr-val">${p.city || '-'}</span></div>
+                            ${p.has_paid?paidTimeHtml:""}
                         </div>
                     </details>
                     `;

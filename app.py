@@ -18,6 +18,7 @@ import time
 import hashlib
 import json
 import orderGenerator
+from threading import Lock
 
 
 
@@ -40,6 +41,7 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 Session(app) 
 # Helper function to check allowed file extensions
 
+transactionLock=Lock()
 
 def allowedFile(filename):
     return '.' in filename and \
@@ -492,25 +494,27 @@ def generatePaymentDetails():
                 max_payments_reached=getTransactionCount()>70
                 user_data['max_registrations_reached']=max_payments_reached
                 if(user_data['hasPaid']!='true' and not max_payments_reached):
-                    transaction_id=insertTransaction(
-                        email=email,
-                        base_amount=user_data['base_cost'],
-                        tax_amount=user_data['tax'],
-                        total_amount=user_data['total_amount'],
-                        name=user_data['name'],
-                        organisation=user_data['organization']
-                    )
-                    if(transaction_id is SUPABASE_GENERAL_ERROR):
-                        return {"issue":"transaction id not generated"},400
-                    orderFromData=orderGenerator.generate(
-                        orderID=transaction_id,
-                        name=user_data['name'],
-                        email=email,
-                        delegateType=user_data['participantType'],
-                        amount=user_data['total_amount']
-                    )
-                    user_data['json_data']=orderFromData['json_data']
-                    user_data['Signature']=orderFromData['Signature']
+                    global transactionLock
+                    with transactionLock:
+                        transaction_id=insertTransaction(
+                            email=email,
+                            base_amount=user_data['base_cost'],
+                            tax_amount=user_data['tax'],
+                            total_amount=user_data['total_amount'],
+                            name=user_data['name'],
+                            organisation=user_data['organization']
+                        )
+                        if(transaction_id is SUPABASE_GENERAL_ERROR):
+                            return {"issue":"transaction id not generated"},400
+                        orderFromData=orderGenerator.generate(
+                            orderID=transaction_id,
+                            name=user_data['name'],
+                            email=email,
+                            delegateType=user_data['participantType'],
+                            amount=user_data['total_amount']
+                        )
+                        user_data['json_data']=orderFromData['json_data']
+                        user_data['Signature']=orderFromData['Signature']
                 user_data['base_cost']=str(user_data['base_cost'])
                 user_data['tax']=str(user_data['tax'])
                 user_data['total_amount']=str(user_data['total_amount'])
@@ -623,6 +627,7 @@ def event_admin_transaction_summary():
     "name",
     "total_amount",
     "completed_at_server_time",
+    'paid_at',
     "trans_ref_no",
     "merc_id",
     "organization",
@@ -633,7 +638,7 @@ def event_admin_transaction_summary():
     for i in successTransactions:
         record={"#":0}
         for j in filteredCols:
-            record[j]=i[j]
+            record[j]=i.get(j)
         timeStamp=convertTimeStamp(record['completed_at_server_time'])
         record['paid_at']=f"{str(timeStamp.day)}-{str(timeStamp.month)}-{str(timeStamp.year)} | {str(timeStamp.hour)}:{str(timeStamp.minute)}:{str(timeStamp.second)}"
         record['paid_at_object']=timeStamp

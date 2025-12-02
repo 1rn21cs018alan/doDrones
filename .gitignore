@@ -218,3 +218,5 @@ token.json
 callback_logs.txt
 redirect_logs.txt
 request_logs.txt
+unpaidData.csv
+*.map

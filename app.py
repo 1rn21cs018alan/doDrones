@@ -630,8 +630,8 @@ def event_admin_transaction_summary():
     'paid_at',
     "trans_ref_no",
     "merc_id",
-    "organization",
     "base_amount",
+    "organization",
     # "tax_amount",
     ]
     filteredData=[]

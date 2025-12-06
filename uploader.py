@@ -24,8 +24,10 @@ def upload(filename:str,fileData:bytes):
         raise FileNotFoundError("No Token File")
 
     try:
+        import mimetypes
         f = io.BytesIO(fileData)
-        media=MediaIoBaseUpload(f, mimetype='application/msword')
+        mimetype=mimetypes.guess_type(filename)[0]
+        media=MediaIoBaseUpload(f, mimetype=mimetype)
         metadata={
             "name":filename
         }

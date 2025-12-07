@@ -157,7 +157,7 @@ def uploadFile():
 @app.route("/portal")
 @app.route("/portal/profile")
 @app.route("/portal/registration")
-@app.route("/portal/very-secret-url/registration")
+# @app.route("/portal/very-secret-url/registration")
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -480,6 +480,7 @@ def generatePaymentDetails():
                 taxApplies=user_data.get('iiscAffiliated')!="yes"
                 costs={
                     'student':6000,
+                    'discount_student':5100,
                     'faculty':9000,
                     'professional':12000,
                     'test':1,

@@ -360,6 +360,8 @@ def successfulTransaction(txnId):
                 )
                 return response4.data[0].get("email")
             return True
+        # else:
+        #     print(response)
     except:
         return False
 
@@ -404,13 +406,84 @@ def getTransactionCount():
         .execute()
     )
     return response.count
+
+def getUserDataByDDAEID(id):
+    participantData={
+        'organization': None,
+        'firstName': None,
+        'lastName': None,
+        'ddaeId': None,
+        'shortBio': None,
+        # 'courseMaterials.length': None
+    }
+    na=None#"N/A"
+    import traceback
+    try:
+        # print('flag1')
+        response = (
+            supabase.table("participant")
+            .select("").eq('ddaeid',id)
+        ).execute()
+        # print('flag2')
+        if len(response.data) > 0:
+            data=response.data[0]
+            participantData['firstName']=data.get('firstName',na)
+            participantData['name']=data.get('firstName',na)+" "+data.get('lastName','')
+            participantData['participantType']=data.get('participantType',na)
+            participantData['organization']=data.get('organization',na)
+            participantData['studentLevel']=data.get('studentLevel',na)
+            participantData['phoneWhatsApp']=data.get('phoneWhatsApp',na)
+            participantData['graduationMonth']=data.get('graduationMonth',na)
+            participantData['graduationYear']=data.get('graduationYear',na)
+            participantData['hasPaid']=data.get('hadPaid',na)
+            participantData['city']=data.get('city',na)
+            participantData['department']=data.get('department',na)
+            participantData['designation']=data.get('designation',na)
+            participantData['firstName']=data.get('firstName',na)
+            participantData['hearAbout']=data.get('hearAbout',na)
+            participantData['hearAboutOther']=data.get('hearAboutOther',na)
+            participantData['idCardLink']=data.get('idCardLink',na)
+            participantData['idCardName']=data.get('idCardName',na)
+            participantData['iiscAffiliated']=data.get('iiscAffiliated',na)
+            participantData['lastName']=data.get('lastName',na)
+            participantData['phoneWork']=data.get('phoneWork',na)
+            participantData['profilePhotoLink']=data.get('profilePhotoLink',na)
+            participantData['profilePhotoPreview']=data.get('profilePhotoPreview',na)
+            participantData['shareWithParticipants']=data.get('shareWithParticipants',na)
+            participantData['shareWithPartners']=data.get('shareWithPartners',na)
+            participantData['shortBio']=data.get('shortBio',na)
+            participantData['workEmail']=data.get('workEmail',na)
+            participantData['hasPaid']=data.get('hasPaid',na)
+            if participantData['hasPaid']=='true' and data.get('transaction_id') is not None:
+                response=(
+                    supabase.table("money_transactions")
+                    .select()
+                    .eq("id",data.get('transaction_id'))
+                    .execute()
+                )
+                if len(response.data)>0:
+                    transaction_id=response.data[0].get("id")
+                    order_id=response.data[0].get("transaction_id")
+                    timeStamp=response.data[0].get("completed_at_server_time")
+                    if timeStamp!=None:
+                        participantData['transaction_datetime']=timeStamp
+                    participantData['transaction_id']=transaction_id
+                    participantData['order_id']=order_id
+                    participantData['ddaeId']=data.get('ddaeid')                
+        else:
+            raise Exception()
+        ...
+    except:
+        traceback.print_exc()
+        ...
+    return participantData
     
 if __name__ == "__main__":
     # import random
     import time
-    print(getTransactionCount())
+    # print(getTransactionCount())
     # print(findUserbyOrderId(700980))
-    # successfulTransaction(700980)
+    print(successfulTransaction(804376))
     # random.seed(time.time_ns())
     # v = random.randint(100000, 999999)
     # print(v)

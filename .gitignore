@@ -220,3 +220,4 @@ redirect_logs.txt
 request_logs.txt
 unpaidData.csv
 *.map
+LINKS.csv

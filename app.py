@@ -10,7 +10,7 @@ from datetime import timedelta,datetime
 import re
 from supabaseHandler import userExists,insertUser,getUserData,upsertParticipantData\
     ,transactionExists,insertTransaction,completeTransaction,successfulTransaction\
-    ,getAllData,getTransactionCount,convertTimeStamp\
+    ,getAllData,getTransactionCount,convertTimeStamp,getUserDataByDDAEID\
     ,SUPABASE_GENERAL_ERROR,SUPABASE_NO_SUCH_USER_ERROR,SUPABASE_USER_ALREADY_VERIFIED
 from sendEmail import sendMail
 import random
@@ -25,6 +25,7 @@ from threading import Lock
 load_dotenv()
 
 isDevelopment = os.environ.get("IS_DEVELOPMENT") == "YES"
+adminEmails = list(map(lambda x:x.strip(),os.environ.get("ADMIN_EMAILS","").split(",")))
 print(isDevelopment)
 # Configure upload folder and allowed extensions
 UPLOAD_FOLDER = 'uploads'
@@ -480,7 +481,6 @@ def generatePaymentDetails():
                 taxApplies=user_data.get('iiscAffiliated')!="yes"
                 costs={
                     'student':6000,
-                    'discount_student':5100,
                     'faculty':9000,
                     'professional':12000,
                     'test':1,
@@ -657,6 +657,15 @@ def event_admin_transaction_summary():
     
     json_data=json.dumps(filteredData)
     return render_template("transaction_summary.html",json_data=json_data)
+
+@app.route("/participant/<path:id>",methods=["GET","POST"])
+def participant_page(id):
+    if session.get("name","")!="" and session.get("name","") in adminEmails:
+        if request.method=="GET":
+            return index()
+        elif request.method=="POST":
+            return getUserDataByDDAEID(id)
+    return redirect("/")
 
 if __name__ == '__main__':
     if not isDevelopment:

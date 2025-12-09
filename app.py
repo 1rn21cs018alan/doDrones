@@ -264,7 +264,7 @@ def sendOtpToEmail():
                 if datetime.now()>resendAfter:
                     OTP=str(random.randint(100000,999999))
                     creationDate=datetime.now()
-                    print(f"OTP: for {email} is {OTP}")
+                    print(f"OTP: for {email} is {OTP}",flush=True)
                     session["OTP"]=OTP
                     session["OTP_VALIDITY"]=creationDate+timedelta(minutes=validityPeriod)
                     session["OTP_RESEND_AFTER"]=creationDate+timedelta(minutes=resendWaitingPeriod)

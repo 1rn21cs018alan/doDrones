@@ -158,12 +158,16 @@ def uploadFile():
 @app.route("/portal")
 @app.route("/portal/profile")
 @app.route("/portal/registration")
-@app.route("/staff/attendence")
 # @app.route("/portal/very-secret-url/registration")
 @app.route("/")
 def index():
     return render_template("index.html")
 
+@app.route("/staff/attendence")
+def adminFilteredPages():
+    if session.get("name") in adminEmails:
+        return index()
+    return redirect('/')
 #@app.route('/sponsers/<path:filename>')
 #def serve_sponser_static(filename):
 #    """

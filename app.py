@@ -298,7 +298,7 @@ def verifyOTP():
                     insertUser(email)
                     emailOTPS.pop(email)
                     response=make_response(isAuth)
-                    response.set_cookie('sessionExists', 'True', httponly=False) 
+                    response.set_cookie('sessionExists', 'True', httponly=False,max_age=30000000) 
                     return response
                 return notAuth("OTP invalid")
             return notAuth("OTP expired")

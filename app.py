@@ -646,7 +646,10 @@ def event_admin_transaction_summary():
         for j in filteredCols:
             record[j]=i.get(j)
         timeStamp=convertTimeStamp(record['completed_at_server_time'])
-        record['paid_at']=f"{str(timeStamp.day)}-{str(timeStamp.month)}-{str(timeStamp.year)} | {str(timeStamp.hour)}:{str(timeStamp.minute)}:{str(timeStamp.second)}"
+        try:
+            record['paid_at']=f"{str(timeStamp.day)}-{str(timeStamp.month)}-{str(timeStamp.year)} | {str(timeStamp.hour)}:{str(timeStamp.minute)}:{str(timeStamp.second)}"
+        except AttributeError:
+            continue
         record['paid_at_object']=timeStamp
         record.pop('completed_at_server_time')
         filteredData.append(record)

@@ -478,6 +478,32 @@ def getUserDataByDDAEID(id):
         ...
     return participantData
     
+def insertAttendenceLog(*,ddaeid,scannerEmail,className):
+    response=(
+        supabase.table("participant")
+        .select()
+        .eq("ddaeid",ddaeid)
+        .execute()
+    )
+    print(response,ddaeid)
+    if len(response.data)>0:
+        dt=convertTimeStamp(datetime.datetime.now())
+        data=response.data[0]
+        id=data.get("id")
+        name=data.get("firstName")+" "+data.get("lastName")
+        insertResponse=(
+            supabase.table("attendence_logs")
+            .insert({
+                "participant_id":id,
+                "participant_name":name,
+                "class_name":className,
+                "scanning_staff_email":scannerEmail
+            })
+            .execute()
+        )
+        return name
+        # print(insertResponse)
+    
 if __name__ == "__main__":
     # import random
     import time

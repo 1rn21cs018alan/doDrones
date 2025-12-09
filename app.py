@@ -10,7 +10,7 @@ from datetime import timedelta,datetime
 import re
 from supabaseHandler import userExists,insertUser,getUserData,upsertParticipantData\
     ,transactionExists,insertTransaction,completeTransaction,successfulTransaction\
-    ,getAllData,getTransactionCount,convertTimeStamp,getUserDataByDDAEID\
+    ,getAllData,getTransactionCount,convertTimeStamp,getUserDataByDDAEID,insertAttendenceLog\
     ,SUPABASE_GENERAL_ERROR,SUPABASE_NO_SUCH_USER_ERROR,SUPABASE_USER_ALREADY_VERIFIED
 from sendEmail import sendMail
 import random
@@ -158,6 +158,7 @@ def uploadFile():
 @app.route("/portal")
 @app.route("/portal/profile")
 @app.route("/portal/registration")
+@app.route("/staff/attendence")
 # @app.route("/portal/very-secret-url/registration")
 @app.route("/")
 def index():
@@ -666,6 +667,27 @@ def participant_page(id):
         elif request.method=="POST":
             return getUserDataByDDAEID(id)
     return redirect("/")
+
+@app.route("/api/mark-attendence",methods=["POST"])
+def mark_attendence():
+    email=session.get("name")
+    if email is not None:
+        if email in adminEmails:
+            if request.is_json:
+                data=request.get_json()
+                ddaeid=data.get("id")
+                try:
+                    ddaeid=ddaeid.strip()
+                    pattern="dodrones.in/participant/"
+                    ddaeid=ddaeid[len(pattern)+ddaeid.index(pattern):]
+                except:
+                    return {"issue":"Invalid dodrones ID Format"},400
+                className=data.get("class")
+                participantName=insertAttendenceLog(ddaeid=ddaeid,scannerEmail=email,className=className)
+                return {"name":participantName}
+            return {"issue":"Data is not in json format"},400
+        return {"issue":"User is not a staff member"},400
+    return {"issue":"User not Logged In"},400
 
 if __name__ == '__main__':
     if not isDevelopment:

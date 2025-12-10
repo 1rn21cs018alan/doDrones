@@ -34,7 +34,7 @@ ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg'}
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config["SESSION_PERMANENT"] = True
-# app.config['SECRET_KEY'] = '1234567890'
+app.config['SECRET_KEY'] = os.environ.get("FLASK_SECRET_KEY")
 # app.config['PERMANENT_SESSION_LIFETIME'] =  timedelta(minutes=5)
 app.config["SESSION_TYPE"] = "filesystem"
 app.url_map.strict_slashes = False

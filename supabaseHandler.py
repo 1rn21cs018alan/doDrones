@@ -139,6 +139,11 @@ def getUserData(email):
                             participantData['transaction_id']=transaction_id
                             participantData['order_id']=order_id
                             participantData['ddaeId']=data.get('ddaeid')
+                        try:
+                            attendence=getAttendence(None,participant_id=participant_id)
+                            participantData['attendedSessions']=attendence.get('attended',0)
+                            participantData['totalSessions']=attendence.get('total',0)
+                        except:...
                                 
                 # print('flag7')
                 
@@ -504,12 +509,89 @@ def insertAttendenceLog(*,ddaeid,scannerEmail,className):
         return name
         # print(insertResponse)
     
+def getAttendence(email,*,participant_id=None):
+    class temp:
+        def __init__(self,pid):
+            self.data=[{"participant_id":pid}]
+    response=temp(participant_id)
+    if participant_id is None:
+        response=(
+            supabase.table("user")
+            .select()
+            .eq("email",email)
+            .execute()
+        )
+    if len(response.data)>0:
+        pid=response.data[0].get("participant_id")
+        classes=[
+            "Day 1: Inauguration",
+            "Day 1: Theory 1- Introduction to UAVs",
+            "Day 1: Theory 2- Aerodynamics & Design -1",
+            "Day 1: Theory 3- Structures & Analysis -1",
+            "Day 1: Guest Lecture 1",
+            "Day 1: Theory 4- Avionics -1",
+            "Day 1: Theory 5- Propulsion -1",
+
+            "Day 2: Theory 6- Avionics -2",
+            "Day 2: Theory 7- Autopilot and Control Systems -1",
+            "Day 2: Theory 8- Aerodynamics and Fixed Wing Design -2",
+            "Day 2: Theory 9- Drone Building Methodology",
+            "Day 2: Practical 1",
+
+            "Day 3: Theory 10- Autopilot and Control Systems -2",
+            "Day 3: Theory 11- Structures & Analysis -2",
+            "Day 3: Theory 12- Propulsion -2",
+            "Day 3: Theory 13- Ground Control",
+            "Day 3: Practical 2",
+
+            "Day 4: Guest Lecture 2",
+            "Day 4: Theory 14- Computer Vision and ROS",
+            "Day 4: Guest Lecture 3",
+            "Day 4: Guest Lecture 4",
+            "Day 4: Practical 3",
+
+            "Day 5: Flight Operations and Demonstrations",
+            "Day 5: Guest Lecture 5",
+            "Day 5: Panel Discussion",
+            "Day 5: Valedictory",
+        ]
+        checklist={i:False for i in classes}
+        import traceback
+        try:
+            response=(
+                supabase.table("attendence_logs")
+                .select()
+                .eq("participant_id",pid)
+                .execute()
+            )
+            for i in response.data:
+                cn=i.get("class_name")
+                if cn in checklist:
+                    checklist[cn]=True
+                else:
+                    print("Found Invalid classname",cn)
+            # checklist["Day 1: Inauguration"]=True
+            # checklist["Day 1: Theory 1- Introduction to UAVs"]=True
+            # checklist["Day 1: Theory 2- Aerodynamics & Design -1"]=True
+            # checklist["Day 1: Theory 3- Structures & Analysis -1"]=True
+            # checklist["Day 1: Guest Lecture 1"]=True
+            # checklist["Day 1: Theory 4- Avionics -1"]=True
+            # checklist["Day 1: Theory 5- Propulsion -1"]=True
+        except:
+            traceback.print_exc()
+            ...
+        return {"attended":sum(checklist.values()),"total":len(checklist)}
+    return {"total":0,"attended":0}
+    
+    
+    
 if __name__ == "__main__":
     # import random
     import time
     # print(getTransactionCount())
     # print(findUserbyOrderId(700980))
-    print(successfulTransaction(804376))
+    print(getAttendence("test@gmail.com"))
+    # print(successfulTransaction(804376))
     # random.seed(time.time_ns())
     # v = random.randint(100000, 999999)
     # print(v)

@@ -687,6 +687,7 @@ def mark_attendence():
                     ddaeid=ddaeid.strip()
                     pattern="dodrones.in/participant/"
                     ddaeid=ddaeid[len(pattern)+ddaeid.index(pattern):]
+                    ddaeid=fix_mismatched_qr(ddaeid)
                 except:
                     return {"issue":"Invalid dodrones ID Format"},400
                 className=data.get("class")
@@ -695,6 +696,84 @@ def mark_attendence():
             return {"issue":"Data is not in json format"},400
         return {"issue":"User is not a staff member"},400
     return {"issue":"User not Logged In"},400
+
+def fix_mismatched_qr(DDAEID):
+    prefix="DDAE250"
+    ind=DDAEID.find(prefix)
+    swapTo={
+        1: 23,
+        2: 5,
+        3: 58,
+        4: 55,
+        5: 2,
+        6: 37,
+        7: 36,
+        8: 12,
+        9: 9,
+        10: 30,
+        11: 11,
+        12: 8,
+        13: 21,
+        14: 14,
+        15: 15,
+        16: 52,
+        17: 39,
+        18: 26,
+        19: 19,
+        20: 57,
+        21: 13,
+        22: 22,
+        23: 1,
+        24: 41,
+        25: 25,
+        26: 18,
+        27: 27,
+        28: 38,
+        29: 29,
+        30: 10,
+        31: 47,
+        32: 50,
+        33: 34,
+        34: 33,
+        35: 53,
+        36: 7,
+        37: 6,
+        38: 28,
+        39: 17,
+        40: 49,
+        41: 24,
+        42: 60,
+        43: 56,
+        44: 48,
+        45: 45,
+        46: 46,
+        47: 31,
+        48: 44,
+        49: 40,
+        50: 32,
+        51: 59,
+        52: 16,
+        53: 35,
+        54: 54,
+        55: 4,
+        56: 43,
+        57: 20,
+        58: 3,
+        59: 51,
+        60: 42,
+        61: 61,
+        62: 62,
+        63: 64
+    }
+    if ind>=0:
+        import traceback
+        try:
+            num=int(DDAEID[ind+len(prefix):])
+            if num in swapTo:
+                return prefix+"%02d"%swapTo[num]
+        except:
+            traceback.print_exc()
+    return ""
 
 if __name__ == '__main__':
     if not isDevelopment:

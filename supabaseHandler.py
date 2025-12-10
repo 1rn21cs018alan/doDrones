@@ -63,6 +63,7 @@ def getUserData(email):
         'merchPassCode': None,
         'attendancePercent': None,
         'attendedSessions': None,
+        'attendedSessionNames': None,
         'totalSessions': None,
         'connectionCount': None,
         'courseMaterials': None,
@@ -142,6 +143,7 @@ def getUserData(email):
                         try:
                             attendence=getAttendence(None,participant_id=participant_id)
                             participantData['attendedSessions']=attendence.get('attended',0)
+                            participantData['attendedSessionNames']=attendence.get('names',[])
                             participantData['totalSessions']=attendence.get('total',0)
                         except:...
                                 
@@ -580,7 +582,7 @@ def getAttendence(email,*,participant_id=None):
         except:
             traceback.print_exc()
             ...
-        return {"attended":sum(checklist.values()),"total":len(checklist)}
+        return {"attended":sum(checklist.values()),"total":len(checklist),"names":[i for i in checklist if i]}
     return {"total":0,"attended":0}
     
     

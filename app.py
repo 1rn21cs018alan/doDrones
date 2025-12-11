@@ -763,7 +763,8 @@ def fix_mismatched_qr(DDAEID):
         60: 42,
         61: 61,
         62: 62,
-        63: 64
+        63: 64,
+        64: 63,
     }
     if ind>=0:
         import traceback

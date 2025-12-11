@@ -26,11 +26,32 @@
                 overflow-x: auto;
             }
         }
+        .flat-button {
+            /* Basic Styling */
+            background-color: #007bff; /* Blue background */
+            color: white;
+            margin: 3px 3px;
+            padding: 6px 12px;
+            border: none; /* No border for a flat look */
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 17px;
+            text-transform: uppercase; /* Use all caps for a classic look */
+            letter-spacing: 1px;
+            
+            /* Transition only the background */
+            transition: background-color 0.2s ease;
+        }
+
+        .flat-button:hover {
+            /* Slightly darker blue on hover */
+            background-color: #0056b3;
+        }
     </style>
 </head>
 <body>
 
-
+    <button id="downloadBtn" class="flat-button">Download Data as CSV</button>
     <div class="table-wrapper">
         <!-- The table will be injected into this container by JavaScript -->
         <div id="table-container" class="bg-white p-6">
@@ -120,6 +141,82 @@
             return table;
         }
 
+        function convertToCSV(arr) {
+            if (arr.length === 0) {
+                return '';
+            }
+
+            // Get the keys for the header row
+            const headers = Object.keys(arr[0]);
+            const csvRows = [];
+
+            // Add the header row
+            csvRows.push(headers.join(','));
+
+            // Loop over the data and create the content rows
+            for (const row of arr) {
+                const values = headers.map(header => {
+                    // Get the value and ensure it's treated as a string
+                    let value = row[header];
+
+                    // Handle null/undefined values
+                    if (value === null || value === undefined) {
+                        value = '';
+                    }
+
+                    // Convert to string and escape double quotes
+                    let stringValue = String(value);
+                    stringValue = stringValue.replace(/"/g, '""');
+
+                    // If the value contains a comma, newline, or double quote,
+                    // enclose it in double quotes to maintain CSV integrity.
+                    if (/[,\n"]/.test(stringValue)) {
+                        return `"${stringValue}"`;
+                    }
+                    return stringValue;
+                });
+                csvRows.push(values.join(','));
+            }
+
+            // Join all rows with a newline character
+            return csvRows.join('\n');
+        }
+
+        /**
+         * Triggers the download of a CSV file.
+         * @param {string} csvString - The CSV data string.
+         * @param {string} filename - The desired name for the downloaded file.
+         */
+        function downloadCSV(csvString, filename = 'data.csv') {
+            // Create a Blob from the CSV string with the correct MIME type
+            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+
+            // Create a temporary link element
+            const link = document.createElement('a');
+            
+            // Generate a URL for the Blob
+            const url = URL.createObjectURL(blob);
+            
+            // Set the download properties
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+
+            // Append to body, click it, and remove it
+            // This is necessary for the download to be triggered in most browsers
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Clean up the object URL
+            URL.revokeObjectURL(url);
+        }
+
+        // 3. Attach the event listener to the button
+        document.getElementById('downloadBtn').addEventListener('click', () => {
+            const data=JSON.parse(SERVER_DATA_JSON);
+            const csvData = convertToCSV(data);
+            downloadCSV(csvData, 'Transaction_Details.csv');
+        });
         // 5. Execution on Document Load
         document.addEventListener('DOMContentLoaded', () => {
             const tableContainer = document.getElementById('table-container');

@@ -155,7 +155,7 @@ def uploadFile():
 @app.route("/program")
 @app.route("/login")
 @app.route("/login/verify")
-@app.route("/portal")
+# @app.route("/portal")
 @app.route("/portal/profile")
 @app.route("/portal/registration")
 # @app.route("/portal/very-secret-url/registration")
@@ -168,6 +168,20 @@ def adminFilteredPages():
     if session.get("name") in adminEmails:
         return index()
     return redirect('/')
+
+adminRefreshCount={}
+@app.route("/portal")
+def adminFastAccess():
+    # admin gets redirected to staff/attendence on refreshing twice
+    if session.get("name") in adminEmails:
+        email=session.get("name")
+        v=adminRefreshCount.get(email,0)+1
+        adminRefreshCount[email]=v
+        if v==3:
+            adminRefreshCount.pop(email)
+            return redirect("/staff/attendence")
+        return index()
+    return index()
 #@app.route('/sponsers/<path:filename>')
 #def serve_sponser_static(filename):
 #    """
@@ -692,7 +706,9 @@ def mark_attendence():
                     return {"issue":"Invalid dodrones ID Format"},400
                 className=data.get("class")
                 participantName=insertAttendenceLog(ddaeid=ddaeid,scannerEmail=email,className=className)
-                return {"name":participantName}
+                if participantName is not None:
+                    return {"name":participantName}
+                return {"issue":"participant not found"},400
             return {"issue":"Data is not in json format"},400
         return {"issue":"User is not a staff member"},400
     return {"issue":"User not Logged In"},400

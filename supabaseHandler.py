@@ -585,7 +585,48 @@ def getAttendence(email,*,participant_id=None):
         return {"attended":sum(checklist.values()),"total":len(checklist),"names":[i for i in checklist if i]}
     return {"total":0,"attended":0}
     
-    
+def getAllAttendence():
+    participantResponse=(
+        supabase.table("participant")
+        .select()
+        .execute()
+    )
+    attendenceResponse1=(
+        supabase.table("attendence_logs")
+        .select()
+        .lte("id",700)
+        .execute()
+    )
+    attendenceResponse2=(
+        supabase.table("attendence_logs")
+        .select()
+        .gt("id",700)
+        .lte("id",1400)
+        .execute()
+    )
+    attendenceResponse3=(
+        supabase.table("attendence_logs")
+        .select()
+        .gt("id",1400)
+        .lte("id",2100)
+        .execute()
+    )
+    attendenceResponse4=(
+        supabase.table("attendence_logs")
+        .select()
+        .gt("id",2100)
+        .lte("id",2800)
+        .execute()
+    )
+    return {
+        "participant":participantResponse.data,
+        "attendence":[
+            *attendenceResponse1.data,
+            *attendenceResponse2.data,
+            *attendenceResponse3.data,
+            *attendenceResponse4.data,
+        ]
+    }
     
 if __name__ == "__main__":
     # import random

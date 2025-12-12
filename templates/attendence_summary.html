@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Report (JS Generated)</title>
+    <style>
+        /* Basic Table Styling */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            //width: 100%;
+            table-layout: fixed;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+            word-wrap: break-word;
+            min-width: 120px;
+            max-width: 120px;
+        }
+        th:first-child, td:first-child {
+            text-align: left;
+            position: sticky;
+            left: 0;
+            background-color: #f2f2f2;
+            z-index: 10;
+            width: 200px;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+            font-size: 0.9em;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        
+        /* Color Coding */
+        .attended-true {
+            background-color: #e6ffe6; /* Light Green */
+            color: #008000; /* Dark Green Text */
+            font-weight: bold;
+        }
+        .attended-false {
+            background-color: #ffe6e6; /* Light Red */
+            color: #cc0000; /* Dark Red Text */
+            font-weight: bold;
+        }
+
+        .table-container {
+            overflow: auto;
+            max-height: 80vh;
+        }
+    </style>
+</head>
+<body>
+    <h1>Attendance Report</h1>
+    
+    <div id="table-container" class="table-container">
+        <p>Loading attendance data...</p>
+    </div>
+
+    <script>
+        /**
+         * Generates an HTML table from a JSON string containing attendance data.
+         * @param {string} jsonString - The JSON string of attendance data.
+         * @param {string} containerId - The ID of the HTML element to insert the table into.
+         */
+        function generateAttendanceTable(jsonString, containerId) {
+            let data;
+            try {
+                data = JSON.parse(jsonString);
+            } catch (e) {
+                document.getElementById(containerId).innerHTML = '<p style="color: red;">Error: Invalid JSON format.</p>';
+                console.error("JSON parsing error:", e);
+                return;
+            }
+
+            const container = document.getElementById(containerId);
+            container.innerHTML = ''; // Clear the loading message
+
+            const personNames = Object.keys(data);
+            if (personNames.length === 0) {
+                container.innerHTML = '<p>No attendance data found.</p>';
+                return;
+            }
+
+            // --- 1. Determine Column Headers (Event Titles) ---
+            // Get keys from the first person's data to define the columns
+            const firstPersonEvents = data[personNames[0]];
+            const eventTitles = Object.keys(firstPersonEvents);
+
+            // --- 2. Create Table Structure ---
+            const table = document.createElement('table');
+            const thead = document.createElement('thead');
+            const tbody = document.createElement('tbody');
+
+            // --- 3. Create Header Row ---
+            const headerRow = document.createElement('tr');
+            
+            // Name Header
+            let nameTh = document.createElement('th');
+            nameTh.textContent = 'Participant Name';
+            headerRow.appendChild(nameTh);
+
+            // Event Headers
+            eventTitles.forEach(title => {
+                let th = document.createElement('th');
+                th.textContent = title;
+                th.title = title; // Use title attribute for full name on hover
+                headerRow.appendChild(th);
+            });
+
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+
+            // --- 4. Populate Table Body (Data Rows) ---
+            personNames.forEach(name => {
+                const personRow = document.createElement('tr');
+                const personData = data[name];
+
+                // First Cell: Person Name
+                let nameTd = document.createElement('td');
+                nameTd.textContent = name;
+                personRow.appendChild(nameTd);
+
+                // Subsequent Cells: Attendance Status
+                eventTitles.forEach(eventTitle => {
+                    const event = personData[eventTitle];
+                    const attended = event && event.attended; // Safely check for 'attended' boolean
+
+                    let statusTd = document.createElement('td');
+                    statusTd.textContent = attended ? '✓' : '✘';
+                    
+                    // Apply Green/Red coloring based on the boolean value
+                    statusTd.className = attended ? 'attended-true' : 'attended-false';
+                    if (attended){
+                        let title=""
+                        for(let i=0;i<event.scan.length;i++){
+                            if(i!=0){
+                                title+="\n";
+                            }
+                            title+=event.scan[i][0]+":"+event.scan[i][1]
+                        }
+                        statusTd.title=title;
+                    }
+                    personRow.appendChild(statusTd);
+                });
+
+                tbody.appendChild(personRow);
+            });
+
+            table.appendChild(tbody);
+            container.appendChild(table);
+        }
+
+        // --- Data Mockup (Replace this with data retrieved from your Flask backend) ---
+        // In a real Flask app, you'd use a route that returns this JSON string.
+
+        // --- Execute the function when the page loads ---
+        window.onload = function() {
+            generateAttendanceTable(JSON.stringify({{json_data|tojson}}), 'table-container');
+        };
+    </script>
+</body>
+</html>

@@ -11,6 +11,7 @@ import re
 from supabaseHandler import userExists,insertUser,getUserData,upsertParticipantData\
     ,transactionExists,insertTransaction,completeTransaction,successfulTransaction\
     ,getAllData,getTransactionCount,convertTimeStamp,getUserDataByDDAEID,insertAttendenceLog\
+    ,getAllAttendence\
     ,SUPABASE_GENERAL_ERROR,SUPABASE_NO_SUCH_USER_ERROR,SUPABASE_USER_ALREADY_VERIFIED
 from sendEmail import sendMail
 import random
@@ -794,6 +795,54 @@ def fix_mismatched_qr(DDAEID):
         except:
             traceback.print_exc()
     return ""
+
+@app.route("/admin_only/attendence")
+def getAllAttendenceData():
+    data=getAllAttendence()
+    classes=[
+        "Day 1: Inauguration",
+        "Day 1: Theory 1- Introduction to UAVs",
+        "Day 1: Theory 2- Aerodynamics & Design -1",
+        "Day 1: Theory 3- Structures & Analysis -1",
+        "Day 1: Guest Lecture 1",
+        "Day 1: Theory 4- Avionics -1",
+        "Day 1: Theory 5- Propulsion -1",
+
+        "Day 2: Theory 6- Avionics -2",
+        "Day 2: Theory 7- Autopilot and Control Systems -1",
+        "Day 2: Theory 8- Aerodynamics and Fixed Wing Design -2",
+        "Day 2: Theory 9- Drone Building Methodology",
+        "Day 2: Practical 1",
+
+        "Day 3: Theory 10- Autopilot and Control Systems -2",
+        "Day 3: Theory 11- Structures & Analysis -2",
+        "Day 3: Theory 12- Propulsion -2",
+        "Day 3: Theory 13- Ground Control",
+        "Day 3: Practical 2",
+
+        "Day 4: Guest Lecture 2",
+        "Day 4: Theory 14- Computer Vision and ROS",
+        "Day 4: Guest Lecture 3",
+        "Day 4: Guest Lecture 4",
+        "Day 4: Practical 3",
+
+        "Day 5: Flight Operations and Demonstrations",
+        "Day 5: Guest Lecture 5",
+        "Day 5: Panel Discussion",
+        "Day 5: Valedictory",
+    ]
+    nameLink={i.get("firstName")+" "+i.get("lastName"):{
+            j:{"attended":False,"scan":[]} for j in classes
+        } for i in data['participant'] if i.get("hasPaid")=="true"}
+    for i in data['attendence']:
+        # print("EEH")
+        name=i.get("participant_name")
+        cls=i.get("class_name")
+        dt=i.get("created_at")
+        sc=i.get("scanning_staff_email")
+        nameLink[name][cls]['attended']=True
+        nameLink[name][cls]['scan'].append([dt,sc])
+    return render_template("attendence_summary.html",json_data=nameLink)
 
 if __name__ == '__main__':
     if not isDevelopment:

@@ -831,13 +831,16 @@ def getAllAttendenceData():
         "Day 5: Panel Discussion",
         "Day 5: Valedictory",
     ]
+    classWithIndex={
+        classes[i]:"%02d. %s"%(i+1,classes[i]) for i in range(len(classes))
+    }
     nameLink={i.get("firstName")+" "+i.get("lastName"):{
-            j:{"attended":False,"scan":[]} for j in classes
+            j:{"attended":False,"scan":[]} for j in classWithIndex.values()
         } for i in data['participant'] if i.get("hasPaid")=="true"}
     for i in data['attendence']:
         # print("EEH")
         name=i.get("participant_name")
-        cls=i.get("class_name")
+        cls=classWithIndex[i.get("class_name")]
         dt=i.get("created_at")
         sc=i.get("scanning_staff_email")
         nameLink[name][cls]['attended']=True
